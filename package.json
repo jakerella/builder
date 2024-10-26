@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A simple static site builder.",
   "main": "builder.js",
+  "bin": {
+    "builder": "bin/builder.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jakerella/builder.git"
