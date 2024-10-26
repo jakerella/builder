@@ -10,7 +10,7 @@ A simple static site builder using [Handlebars for templating](https://handlebar
 
 2. Create your build config (`build.json`) in your project's root directory:
 
-```json
+```js
 {
     "destination": "build/",  // where the built files will go (should be empty or not exist yet)
     "clean": true,  // whether or not to remove the destination directory before starting
