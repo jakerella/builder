@@ -19,5 +19,8 @@
   "dependencies": {
     "fs-extra": "^11.2.0",
     "handlebars": "^4.7.8"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
   }
 }

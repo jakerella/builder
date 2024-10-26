@@ -6,7 +6,7 @@ A simple static site builder using [Handlebars for templating](https://handlebar
 
 1. Install the builder:
 
-`npm install git+https://github.com/jakerella/builder.git`
+`npm install --save-dev git+https://github.com/jakerella/builder.git`
 
 2. Create your build config (`build.json`) in your project's root directory:
 
@@ -43,9 +43,11 @@ my-project/
     |_ work-projects.html
 ```
 
-4. Run the build: `node build`
+4. Run the build: `npx builder`
 
-> If you aren't using the default config file (`build.json` in the project root) then you need to specify the config file: `node build build.json`
+> If you aren't using the default config file (`build.json` in the project root) then you need to specify the config file: `npx builder build.json`
+>   
+> You may want to run the builder with more logs... try: `DEBUG_LEVEL=DEBUG npx builder`
 
 5. Serve up the destination directory:
 
@@ -54,3 +56,16 @@ You can use a simple HTTP server like Node's `http-server`. If you use the defau
 `http-server build/`
 
 And you can access your site at: `127.0.0.1:3000`
+
+### Test it out here
+
+You can generate the test site in this repo following these steps:
+
+```
+git clone https://github.com/jakerella/builder
+npm install
+node bin/builder.js example_build.json
+npx http-server build/
+```
+
+Now visit [http://127.0.0.1:3000](http://127.0.0.1:3000) to see the test site. You can also see the built files in `build/`
