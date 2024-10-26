@@ -1,0 +1,11 @@
+{
+    "destination": "build/",
+    "clean": true,
+    "default_layout": "basic",
+    "layouts_loc": "layouts/",
+    "partials_loc": "layouts/partials/",
+    "pages_loc": "pages/",
+    "static_copy": [
+        { "source": "assets/", "dest": "" }
+    ]
+}
