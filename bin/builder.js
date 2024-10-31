@@ -146,8 +146,6 @@ function gatherPageData(options) {
         }
     }
 
-    console.log(JSON.stringify(pages, null, 2))
-
     logger.info(`Parsed ${Object.keys(pages).length} pages for processing`)
     return pages
 }
