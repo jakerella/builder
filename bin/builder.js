@@ -5,6 +5,7 @@ const start = Date.now()
 const fs = require('fs-extra')
 const path = require('path')
 const Handlebars = require('handlebars')
+const { marked } = require('marked')
 
 const DEFAULT_CONFIG_FILENAME = 'build.json'
 
@@ -31,10 +32,11 @@ const logger = createLogger()
 
     const pages = gatherPageData(options)
     for (let name in pages) {
-        const result = templates[pages[name].layout || options.default_layout]({ ...pages[name].metadata, contents: pages[name].contents })
+        const result = templates[pages[name].metadata?.layout || options.default_layout]({ ...pages[name].metadata, contents: pages[name].contents })
         logger.debug(`Generated page (${name}) from template (${pages[name].layout || options.default_layout})`)
-        fs.writeFileSync(`${options.destination}/${name}.html`, result)
-        logger.debug(`Wrote page contents to: ${options.destination}/${name}.html`)
+        const destination = path.join(options.destination, pages[name].destLoc)
+        fs.outputFileSync(destination, result, { mode: 0o644 })
+        logger.debug(`Wrote page contents to: ${destination}`)
     }
 
     ;(options.static_copy || []).forEach(loc => {
@@ -80,15 +82,19 @@ function checkOptions(args = []) {
 function buildTemplates(options) {
     const partials = gatherFilesFromDir(options.partials_loc, 'partial')
     const partialContent = {}
-    Object.keys(partials).map(name => { partialContent[name] = partials[name].content })
+    for (let name in partials) {
+        const noExt = partials[name].filename.split('.').slice(0, -1).join('.')
+        partialContent[noExt] = partials[name].content
+    }
     Handlebars.registerPartial(partialContent)
-    logger.debug(`Registered ${Object.keys(partials).length} partials with Handlebars`)
+    logger.debug(`Registered ${Object.keys(partials).length} partials with Handlebars: ${Object.keys(partialContent)}`)
 
     const layouts = gatherFilesFromDir(options.layouts_loc, 'layout')
     const templates = {}
     for (let name in layouts) {
-        templates[name] = Handlebars.compile(layouts[name].content)
-        logger.debug(`Compiled ${name} template from layout file`)
+        const noExt = layouts[name].filename.split('.').slice(0, -1).join('.')
+        templates[noExt] = Handlebars.compile(layouts[name].content)
+        logger.debug(`Compiled ${noExt} template from layout file`)
     }
     logger.log(`Compiled ${Object.keys(templates).length} layout templates`)
     return templates
@@ -96,47 +102,76 @@ function buildTemplates(options) {
 
 function gatherPageData(options) {
     const pages = {}
-    const pageFiles = gatherFilesFromDir(options.pages_loc, 'page')
+    const pageFiles = gatherFilesFromDir(options.pages_loc, 'page', options.recurse_pages)
     for (let name in pageFiles) {
-        if (pageFiles[name].content.indexOf('---') !== 0 || pageFiles[name].content.indexOf('---', 4) < 0) {
-            logger.warn(`Skipping page file with bad or missing metadata: ${name}`)
-            continue
-        }
-        const pageParts = pageFiles[name].content.split('---')
-        const metaLines = pageParts[1].split(/\n/).slice(1, -1)
         const metadata = {}
-        metaLines.forEach((line) => {
-            const data = line.split(':')
-            metadata[data[0]] = data[1].trim()
-        })
-        logger.debug(`Parsed metadata for: ${name}: ${JSON.stringify(metadata)}`)
+        let contents = pageFiles[name].content
+        if (pageFiles[name].content.indexOf('---') === 0 && pageFiles[name].content.indexOf('---', 4) > -1) {
+            const pageParts = pageFiles[name].content.split('---')
+            const metaLines = pageParts[1].split(/\n/).slice(1, -1)
+            contents = pageParts.slice(2).join('---')
+            
+            metaLines.forEach((line) => {
+                const data = line.split(':')
+                metadata[data[0]] = data[1].trim()
+            })
+            logger.debug(`Parsed metadata from front matter for: ${name}: ${JSON.stringify(metadata)}`)
+        }
+
+        let destFilename = pageFiles[name].filename
+        if (pageFiles[name].filename.split('.').pop() === 'md') {
+            try {
+                contents = marked.parse(contents)
+                logger.debug(`Converted markdown to html for page: ${name}`)
+            } catch(err) {
+                logger.warn(`Unable to convert markdown to html for page: ${name}, using original content and proceeding`)
+                logger.warn(err.message)
+            }
+            const newName = pageFiles[name].filename.split('.')
+            newName.pop()
+            destFilename = `${newName}.html`
+        }
+
         pages[name] = {
-            contents: pageParts[2],
+            contents,
             metadata,
-            sourceLoc: path.join(options.pages_loc, `${name}.${pageFiles[name].ext}`)
+            sourceLoc: path.join(options.pages_loc, ...pageFiles[name].path, pageFiles[name].filename),
+            destLoc: path.join(...pageFiles[name].path, destFilename)
         }
     }
+
+    console.log(JSON.stringify(pages, null, 2))
+
     logger.info(`Parsed ${Object.keys(pages).length} pages for processing`)
     return pages
 }
 
-function gatherFilesFromDir(dir, type) {
-    logger.debug(`Looking for ${type} files at: ${dir}`)
-    const files = {}
-    fs.readdirSync(dir, { withFileTypes: true }).forEach((f) => {
-        if (!f.isFile()) {
-            return logger.debug(`Skipping non-file ${type} entry: ${f.name}`)
+function gatherFilesFromDir(dir, type, recurse = false, filePath = []) {
+    logger.debug(`Looking for ${type} files in: ${dir}`)
+    let files = {}
+    fs.readdirSync(dir, { withFileTypes: true }).forEach((entry) => {
+        if (!entry.isFile()) {
+            if (recurse === true) {
+                logger.debug(`Recursing into directory: ${entry.name}`)
+                files = {...files, ...gatherFilesFromDir(path.join(dir, entry.name), type, recurse, [...filePath, entry.name])}
+                return
+            } else {
+                return logger.debug(`Skipping non-file ${type} entry: ${entry.name}`)
+            }
         }
-        const filename = f.name
+        const filename = entry.name
         try {
-            const name = filename.split('.').slice(0, -1).join('.')
-            files[name] = { ext: filename.split('.').pop(), content: fs.readFileSync(path.join(dir, filename)).toString() }
+            files[path.join(...filePath, filename)] = {
+                path: filePath,
+                filename,
+                content: fs.readFileSync(path.join(dir, filename)).toString()
+            }
         } catch (err) {
             return logger.warn(`Unable to read ${type} file: ${filename}`)
         }
-        logger.debug(`Found ${type}: ${filename}`)
     })
-    logger.log(`Found ${Object.keys(files).length} ${type} entries`)
+
+    logger.log(`Found ${Object.keys(files).length} ${type} entries in ${dir}`)
     return files
 }
 

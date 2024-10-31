@@ -1,6 +1,6 @@
 # Builder
 
-A simple static site builder using [Handlebars for templating](https://handlebarsjs.com/). Very lightweight, and without too many features.
+A simple static site builder using [Handlebars for templating](https://handlebarsjs.com/). Very lightweight, and without too many features. Can handle markdown (gfm) content and nested pages.
 
 ## Usage
 
@@ -18,6 +18,7 @@ A simple static site builder using [Handlebars for templating](https://handlebar
     "layouts_loc": "layouts/",  // the directory path for all Handlebars layouts
     "partials_loc": "layouts/partials/",  // the directory path for all Handlebars partials (header, footer, nav, etc)
     "pages_loc": "pages/",  // the directory path for all content pages
+    "recurse_pages": true,  // should the pages location be looked through recursively?
     "static_copy": [
         // An array of things to copy into the destination directory as-is (like CSS, client side JS, etc)
         { "source": "assets/", "dest": "" }
@@ -41,13 +42,16 @@ my-project/
     |_ index.html
     |_ profile.html
     |_ work-projects.html
+    |_ blog
+      |_ a-blog-entry.md
+      |_ another-entry.md
 ```
 
 4. Run the build: `npx builder`
 
-> If you aren't using the default config file (`build.json` in the project root) then you need to specify the config file: `npx builder build.json`
+> If you aren't using the default config file (`build.json` in the project root) then you need to specify the config file: `npx builder my-build-config.json`
 >   
-> You may want to run the builder with more logs... try: `DEBUG_LEVEL=DEBUG npx builder`
+> You may want to run the builder with debug logs when starting out: `DEBUG_LEVEL=DEBUG npx builder`
 
 5. Serve up the destination directory:
 
