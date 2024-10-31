@@ -1,0 +1,3 @@
+By default, the builder will skip non-html, non-markdown files.
+
+You could include this file using a static_copy step

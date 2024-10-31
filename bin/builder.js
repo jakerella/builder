@@ -104,6 +104,12 @@ function gatherPageData(options) {
     const pages = {}
     const pageFiles = gatherFilesFromDir(options.pages_loc, 'page', options.recurse_pages)
     for (let name in pageFiles) {
+        const ext = pageFiles[name].filename.split('.').pop()
+        if (ext !== 'html' && ext !== 'md') {
+            logger.debug(`Skipping non-html, non-markdown file: ${name}`)
+            continue
+        }
+
         const metadata = {}
         let contents = pageFiles[name].content
         if (pageFiles[name].content.indexOf('---') === 0 && pageFiles[name].content.indexOf('---', 4) > -1) {
@@ -119,7 +125,7 @@ function gatherPageData(options) {
         }
 
         let destFilename = pageFiles[name].filename
-        if (pageFiles[name].filename.split('.').pop() === 'md') {
+        if (ext === 'md') {
             try {
                 contents = marked.parse(contents)
                 logger.debug(`Converted markdown to html for page: ${name}`)
