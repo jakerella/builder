@@ -2,16 +2,17 @@
 
 const start = Date.now()
 
-const fs = require('fs-extra')
-const path = require('path')
-const Handlebars = require('handlebars')
-const { marked } = require('marked')
+import fs from 'fs-extra'
+import path from 'path'
+import Handlebars from 'handlebars'
+import { marked } from 'marked'
+import * as pagefind from 'pagefind'
 
 const DEFAULT_CONFIG_FILENAME = 'build.json'
 
 const logger = createLogger()
 
-; (() => {
+; (async () => {
     const options = checkOptions(Array.from(process.argv).slice(2))
 
     logger.info('Starting build...')
@@ -45,6 +46,20 @@ const logger = createLogger()
         fs.copySync(loc.source, dest)
     })
     logger.info(`Copied static assets to ${options.destination}`)
+
+    if (options.build_index) {
+        logger.info(`Building search indeces`)
+        const { index } = await pagefind.createIndex({
+            rootSelector: 'html',
+            forceLanguage: 'en',
+            verbose: true // (process.env.DEBUG_LEVEL === 'DEBUG') ? true : false
+        })
+        logger.debug(`Adding html files from within ${options.destination} to search index`)
+        await index.addDirectory({ path: options.destination, glob: '**/*.{html}' })
+        logger.debug(`Writing index to ${options.destination}__pagefind`)
+        await index.writeFiles({ outputPath: `${options.destination}__pagefind` })
+        await pagefind.close()
+    }
 
     reportCompletion()
 })()

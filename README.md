@@ -19,6 +19,7 @@ A simple static site builder using [Handlebars for templating](https://handlebar
     "partials_loc": "layouts/partials/",  // the directory path for all Handlebars partials (header, footer, nav, etc)
     "pages_loc": "pages/",  // the directory path for all content pages
     "recurse_pages": true,  // should the pages location be looked through recursively?
+    "build_index": true,  // should we generate a search index for the HTML files generated?
     "static_copy": [
         // An array of things to copy into the destination directory as-is (like CSS, client side JS, etc)
         { "source": "assets/", "dest": "" }

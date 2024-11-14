@@ -1,10 +1,20 @@
-<h1>{{title}}</h1>
+<header>
+    <h1>{{title}}</h1>
 
-<nav>
-    <ul>
-        <li><a href='/'>Home</a></li>
-        <li><a href='/blog'>Blog</a></li>
-        <li><a href='/subdir/test.html'>Test in sub directory with no front matter</a></li>
-        <li><a href='/subdir/sub-subdir/test'>File with same name and link without the ".html"</a></li>
-    </ul>
-</nav>
+    <nav>
+        <ul>
+            <li><a href='/'>Home</a></li>
+            <li><a href='/blog'>Blog</a></li>
+            <li><a href='/subdir/test.html'>Test in sub directory with no front matter</a></li>
+            <li><a href='/subdir/sub-subdir/test'>File with same name and link without the ".html"</a></li>
+        </ul>
+    </nav>
+
+    <aside class='search'></aside>
+
+    <script>
+    // See more on configuring the UI here: https://pagefind.app/docs/ui-usage/
+    // Don't forget to include the css file and JS file (see layouts/basic.hbs)
+    new PagefindUI({ element: ".search" })
+    </script>
+</header>

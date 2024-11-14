@@ -6,6 +6,7 @@
     "partials_loc": "layouts/partials/",
     "pages_loc": "pages/",
     "recurse_pages": true,
+    "build_index": true,
     "static_copy": [
         { "source": "assets/", "dest": "" }
     ]
