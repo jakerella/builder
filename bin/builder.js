@@ -153,6 +153,11 @@ function gatherPageData(options) {
             destFilename = `${newName}.html`
         }
 
+        if (options.title_element && !metadata.title) {
+            const titleMatch = contents.match(new RegExp(`\<${options.title_element}\s?[^\>]*\>([^\<]+)\<\/${options.title_element}\>`))
+            metadata.title = titleMatch[1] || null
+        }
+
         pages[name] = {
             contents,
             metadata,

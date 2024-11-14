@@ -20,6 +20,7 @@ A simple static site builder using [Handlebars for templating](https://handlebar
     "pages_loc": "pages/",  // the directory path for all content pages
     "recurse_pages": true,  // should the pages location be looked through recursively?
     "build_index": true,  // should we generate a search index for the HTML files generated?
+    "title_element": null, // an HTML element name to look for if there is no title in front matter (i.e. "h2")
     "static_copy": [
         // An array of things to copy into the destination directory as-is (like CSS, client side JS, etc)
         { "source": "assets/", "dest": "" }
