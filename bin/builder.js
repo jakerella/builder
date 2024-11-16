@@ -142,6 +142,9 @@ function gatherPageData(options) {
         let destFilename = pageFiles[name].filename
         if (ext === 'md') {
             try {
+                if (options.header_anchors) {
+                    marked.use({ renderer: getHeaderAnchorRenderer() })
+                }
                 contents = marked.parse(contents)
                 logger.debug(`Converted markdown to html for page: ${name}`)
             } catch(err) {
@@ -197,6 +200,18 @@ function gatherFilesFromDir(dir, type, recurse = false, filePath = []) {
 
     logger.log(`Found ${Object.keys(files).length} ${type} entries in ${dir}`)
     return files
+}
+
+function getHeaderAnchorRenderer() {
+    return  {
+        heading({tokens, depth}) {
+            const text = this.parser.parseInline(tokens)
+            const slug = text.trim().toLowerCase()
+                .replaceAll(/[^a-z0-9]+/g, '-')  // remove non-alpha-numerics
+                .replace(/(^\-+|\-+$)/, '')  // remove leading or trailing hyphens
+            return `<h${depth} id='${slug}'>${text}</h${depth}>`
+        }
+    }
 }
 
 function reportCompletion() {

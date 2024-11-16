@@ -7,7 +7,8 @@
     "pages_loc": "pages/",
     "recurse_pages": true,
     "build_index": true,
-    "title_element": null,
+    "title_element": "h2",
+    "header_anchors": true,
     "static_copy": [
         { "source": "assets/", "dest": "" }
     ]
